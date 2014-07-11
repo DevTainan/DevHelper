@@ -36,13 +36,28 @@ namespace DevHelper
             // Init
             string testString = @"
 <Body>
-    <Id/>
-    <Child>
-        <GrandChild1/>
-        <GrandChild2/>
+    <Id KGS_TYPE=""U4"" />
+    <Child KGS_TYPE=""L"">
+        <GrandChild1 KGS_TYPE=""L"">
+            <Id KGS_TYPE=""I4"" />
+            <Id KGS_TYPE=""A"" />
+        </GrandChild1>
+        <GrandChild2 KGS_TYPE=""L"">
+            <Id KGS_TYPE=""I4"" />
+            <Id KGS_TYPE=""A"" />
+        </GrandChild2>
     </Child>
 </Body>
 ";
+//            string testString = @"
+//<Body>
+//    <Id/>
+//    <Child>
+//        <GrandChild1/>
+//        <GrandChild2/>
+//    </Child>
+//</Body>
+//";
 //            string testString = @"
 //<Root>
 //    <Id/>
@@ -171,7 +186,7 @@ namespace DevHelper
                 if (newXmlNode.startTag_EndIndex != -1)
                 {
                     // 開始符號的位置+自己的長度=Tag開始位置
-                    newXmlNode.TagName = xml.Substring(newXmlNode.startTag_StartIndex + "<".Length, newXmlNode.startTag_EndIndex - (newXmlNode.startTag_StartIndex + "<".Length));
+                    newXmlNode.TagName = xml.Substring(newXmlNode.startTag_StartIndex + "<".Length, newXmlNode.startTag_EndIndex - (newXmlNode.startTag_StartIndex + "<".Length));                    
 
                     if (xmlNode != null)
                     {
@@ -180,70 +195,93 @@ namespace DevHelper
                         xmlNode.XmlNodeList.Enqueue(newXmlNode); 
                     }
 
-                    newXmlNode.endTag_StartIndex = FindLast(xml, "</");
-                    if (newXmlNode.endTag_StartIndex != -1)    // 有找到結尾服號, 才需要判斷是否為結尾Tag
+                    // 先判斷是否為自我結尾 "/>", 若不是再找結尾符號
+                    string self_end = xml.Substring(newXmlNode.startTag_EndIndex - 1, 2);
+                    if (self_end.Equals("/>"))
                     {
-                        newXmlNode.endTag_EndIndex = FindLast(xml, ">");
-                        string endTag = xml.Substring(newXmlNode.endTag_StartIndex + "</".Length, newXmlNode.endTag_EndIndex - (newXmlNode.endTag_StartIndex + "</".Length));
-
-                        if (endTag.Equals(newXmlNode.TagName))
+                        // 解析TagName是否包含空白, 有空白表是包含屬性, 而且TagName為空白分割的第一組字串
+                        newXmlNode.TagName = newXmlNode.TagName.Substring(0, newXmlNode.TagName.Length - 1);
+                        if (newXmlNode.TagName.Contains(" "))
                         {
-                            newXmlNode.HasEnd = true;
+                            //string[] attributes = System.Text.RegularExpressions.Regex.Split(newXmlNode.TagName, @"\ {5}");
+                            string[] attributes = newXmlNode.TagName.Split(new char[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+                            newXmlNode.TagName = attributes[0];
 
-                            // 有結尾才有Value
-                            newXmlNode.Value = xml.Substring(newXmlNode.startTag_EndIndex + ">".Length, newXmlNode.endTag_StartIndex - (newXmlNode.startTag_EndIndex + ">".Length));
-
-                            // 有Value才繼續解析
-                            //return ParseXml(newXmlNode.Value, newXmlNode);
-                            ParseXml(newXmlNode.Value, newXmlNode);
-                        }
-                        else    // todo 沒有結尾要判斷下個節點, 如何知道是單一結點 or List ?
-                        {
-                            newXmlNode.HasEnd = false;
-                            //return newXmlNode;
-                        }
-
-                        // todo 當有開始Tag的結尾服號, 要判斷是否等於XML的長度(否表示還有其他XmlNode)
-                        if (newXmlNode.HasEnd)
-                        {
-                            if (newXmlNode.endTag_EndIndex != xml.Length - 1)
+                            foreach (string attr in attributes.Where(str => str != newXmlNode.TagName).ToArray())
                             {
-                                string next_xml_node = xml.Substring(newXmlNode.startTag_EndIndex + ">".Length, (xml.Length) - (newXmlNode.startTag_EndIndex + ">".Length));
-                                ParseXml(next_xml_node, xmlNode);
-                            }
-                        }
-                        else
-                        {
-                            if (newXmlNode.startTag_EndIndex != xml.Length - 1)
-                            {
-                                string next_xml_node = xml.Substring(newXmlNode.startTag_EndIndex + ">".Length, (xml.Length) - (newXmlNode.startTag_EndIndex + ">".Length));
-                                ParseXml(next_xml_node, xmlNode);
+                                newXmlNode.XmlAttributeList.Enqueue(new XmlAttribute(attr));
                             }
                         }
 
-                        return newXmlNode;
+                        #region Self End "/>"
+                        newXmlNode.HasEnd = true;
+                        newXmlNode.HasSelfEnd = true;
+
+                        if (newXmlNode.startTag_EndIndex != xml.Length - 1)
+                        {
+                            string next_xml_node = xml.Substring(newXmlNode.startTag_EndIndex + ">".Length, (xml.Length) - (newXmlNode.startTag_EndIndex + ">".Length));
+                            ParseXml(next_xml_node, xmlNode);
+                        }
+
+                        return newXmlNode; 
+                        #endregion
                     }
                     else
                     {
-                        // todo 當有開始Tag的結尾服號, 要判斷是否等於XML的長度(否表示還有其他XmlNode)
-                        if (newXmlNode.HasEnd)
+                        // 解析TagName是否包含空白, 有空白表是包含屬性, 而且TagName為空白分割的第一組字串
+                        if (newXmlNode.TagName.Contains(" "))
                         {
-                            if (newXmlNode.endTag_EndIndex != xml.Length - 1)
+                            //string[] attributes = System.Text.RegularExpressions.Regex.Split(newXmlNode.TagName, @"\ {5}");
+                            string[] attributes = newXmlNode.TagName.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                            newXmlNode.TagName = attributes[0];
+
+                            foreach (string attr in attributes.Where(str => str != newXmlNode.TagName).ToArray())
                             {
-                                string next_xml_node = xml.Substring(newXmlNode.startTag_EndIndex + ">".Length, (xml.Length - 1) - (newXmlNode.startTag_EndIndex + ">".Length));
-                                ParseXml(next_xml_node, xmlNode);
-                            }
-                        }
-                        else
-                        {
-                            if (newXmlNode.startTag_EndIndex != xml.Length - 1)
-                            {
-                                string next_xml_node = xml.Substring(newXmlNode.startTag_EndIndex + ">".Length, (xml.Length - 1) - (newXmlNode.startTag_EndIndex + ">".Length));
-                                ParseXml(next_xml_node, xmlNode);
+                                newXmlNode.XmlAttributeList.Enqueue(new XmlAttribute(attr));
                             }
                         }
 
-                        return newXmlNode;
+                        #region Has End "</xxx>" or Not End
+                        newXmlNode.endTag_StartIndex = FindLast(xml, "</");
+                        if (newXmlNode.endTag_StartIndex != -1)    // 有找到結尾符號, 才需要判斷是否為結尾Tag
+                        {
+                            newXmlNode.endTag_EndIndex = FindLast(xml, ">");
+                            string endTag = xml.Substring(newXmlNode.endTag_StartIndex + "</".Length, newXmlNode.endTag_EndIndex - (newXmlNode.endTag_StartIndex + "</".Length));
+
+                            #region Has End "</xxx>"
+                            if (endTag.Equals(newXmlNode.TagName))
+                            {
+                                newXmlNode.HasEnd = true;
+
+                                // 有結尾才有Value
+                                newXmlNode.Value = xml.Substring(newXmlNode.startTag_EndIndex + ">".Length, newXmlNode.endTag_StartIndex - (newXmlNode.startTag_EndIndex + ">".Length));
+
+                                // 有Value才繼續解析
+                                //return ParseXml(newXmlNode.Value, newXmlNode);
+                                ParseXml(newXmlNode.Value, newXmlNode);
+                            }
+                            else    // todo 沒有結尾要判斷下個節點, 如何知道是單一結點 or List ?
+                            {
+                                newXmlNode.HasEnd = false;
+                                //return newXmlNode;
+                            }
+
+                            // 判斷是否還有其他XmlNode並處理
+                            ProcessNextXmlNode(xml, xmlNode, newXmlNode);
+
+                            return newXmlNode; 
+                            #endregion
+                        }
+                        else
+                        {
+                            #region Not End
+                            // 判斷是否還有其他XmlNode並處理
+                            ProcessNextXmlNode(xml, xmlNode, newXmlNode);
+
+                            return newXmlNode; 
+                            #endregion
+                        } 
+                        #endregion
                     }
                 }
                 else
@@ -254,6 +292,27 @@ namespace DevHelper
             else
             {
                 return null;
+            }
+        }
+
+        private void ProcessNextXmlNode(string xml, XmlNode xmlNode, XmlNode newXmlNode)
+        {
+            // 當有開始Tag的結尾服號, 要判斷是否等於XML的長度(否表示還有其他XmlNode)
+            if (newXmlNode.HasEnd)
+            {
+                if (newXmlNode.endTag_EndIndex != xml.Length - 1)
+                {
+                    string next_xml_node = xml.Substring(newXmlNode.startTag_EndIndex + ">".Length, (xml.Length) - (newXmlNode.startTag_EndIndex + ">".Length));
+                    ParseXml(next_xml_node, xmlNode);
+                }
+            }
+            else
+            {
+                if (newXmlNode.startTag_EndIndex != xml.Length - 1)
+                {
+                    string next_xml_node = xml.Substring(newXmlNode.startTag_EndIndex + ">".Length, (xml.Length) - (newXmlNode.startTag_EndIndex + ">".Length));
+                    ParseXml(next_xml_node, xmlNode);
+                }
             }
         }
 
@@ -283,8 +342,51 @@ namespace DevHelper
 
         //public string Name { get; set; }
         public string Value { get; set; }
-        public ValueTypeEnum ValueType { get; set; }
+
+        public ValueTypeEnum ValueType 
+        {
+            get 
+            {
+                if (this.XmlAttributeList.Count > 0)
+                {
+                    ValueTypeEnum valueTypeEnum;
+                    switch(XmlAttributeList.First().Value)
+                    {
+                        case "U4":
+                            valueTypeEnum = ValueTypeEnum.UINT;
+                            break;
+                        case "I4":
+                            valueTypeEnum = ValueTypeEnum.INT;
+                            break;
+                        case "A":
+                            valueTypeEnum = ValueTypeEnum.STRING;
+                            break;
+                        case "L":
+                            valueTypeEnum = ValueTypeEnum.LIST;
+                            break;
+                        default:
+                            valueTypeEnum = ValueTypeEnum.NONE;
+                            break;
+                    }
+
+                    return valueTypeEnum;
+                }
+                else
+                {
+                    return ValueTypeEnum.NONE;
+                }
+            }
+        }
+
         public bool HasEnd { get; set; }
+        public bool HasSelfEnd { get; set; }
+
+        private Queue<XmlAttribute> _XmlAttributeList = new Queue<XmlAttribute>();
+        public Queue<XmlAttribute> XmlAttributeList
+        {
+            get { return _XmlAttributeList; }
+            set { _XmlAttributeList = value; }
+        }
 
         private Queue<XmlNode> _XmlNodeList = new Queue<XmlNode>();
         public Queue<XmlNode> XmlNodeList
@@ -303,13 +405,23 @@ namespace DevHelper
             //return base.ToString();
             string outputString = "TagName:{0}" + Environment.NewLine +
                                   "HasEnd:{1}" + Environment.NewLine +
-                                  "Value:{2}" + Environment.NewLine +
-                                  "---------------------" + Environment.NewLine;
+                                  "HasSelfEnd:{2}" + Environment.NewLine +
+                                  "Value:{3}" + Environment.NewLine +
+                                  "ValueType:{4}" + Environment.NewLine;
 
             string returnString = string.Format(outputString,
                 this.TagName,
                 this.HasEnd.ToString(),
-                this.Value);
+                this.HasSelfEnd.ToString(),
+                this.Value,
+                this.ValueType.ToString());
+
+            foreach (XmlAttribute attr in this.XmlAttributeList)
+            {
+                returnString += attr.ToString();
+            }
+
+            returnString += "---------------------" + Environment.NewLine;
 
             foreach (XmlNode node in this.XmlNodeList)
             {
@@ -319,11 +431,45 @@ namespace DevHelper
         }
     }
 
+    public class XmlAttribute
+    {
+        public string Name { get; set; }
+        public string Value { get; set; }
+
+        public XmlAttribute(string attributeString)
+        {
+            if (attributeString.Contains("="))
+            {
+                this.Name = attributeString.Split('=')[0];
+                this.Value = attributeString.Split('=')[1].Replace("\"","");
+            }
+            else
+            {
+                this.Name = attributeString;
+                this.Value = string.Empty;
+            }
+        }
+
+        public override string ToString()
+        {
+            //return base.ToString();
+            string outputString = "AttrKey:{0}, AttrValue:{1}" + Environment.NewLine;
+
+            string returnString = string.Format(outputString,
+                this.Name,
+                this.Value);
+
+            return returnString;
+        }
+    }
+
     public enum ValueTypeEnum   // 數值類型
     {
+        NONE,
         UINT,
         INT,
         STRING,
+        LIST,
     }
 
     public enum AnalyzeResultEnum   // 解析結果
