@@ -36,6 +36,8 @@
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="XmlAttri.cs" />
+    <Compile Include="XmlElement.cs" />
     <Compile Include="DevCore.cs" />
     <Compile Include="DevEnum.cs" />
     <Compile Include="DevParameter.cs" />

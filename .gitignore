@@ -1,0 +1,5 @@
+DevHelper/obj/*
+DevHelper/bin/*
+DevCore/bin/*
+DevCore/obj/*
+*.suo
