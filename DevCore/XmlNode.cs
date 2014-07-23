@@ -7,6 +7,8 @@ namespace DevCore
 {
     public class XmlNode : XmlObject
     {
+        #region Property
+
         public ValueTypeEnum ValueType
         {
             get
@@ -64,6 +66,8 @@ namespace DevCore
         public int endTag_StartIndex = -1;
         public int endTag_EndIndex = -1;
 
+        #endregion
+
         public override string ToString()
         {
             //return base.ToString();
@@ -91,6 +95,19 @@ namespace DevCore
             {
                 returnString += node.ToString();
             }
+            return returnString;
+        }
+
+        public string ToFunString()
+        {
+            string outputString = @"<{0} {1}>{2}</{3}>";   // 要兩個雙引號, 配合@
+
+            string returnString = string.Format(outputString,
+                this.Name,
+                this.XmlAttributeList.First().ToFunString(),
+                this.Value,
+                this.Name);
+
             return returnString;
         }
     }

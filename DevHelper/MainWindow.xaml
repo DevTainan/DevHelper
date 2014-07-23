@@ -26,7 +26,19 @@
                         <RowDefinition></RowDefinition>
                     </Grid.RowDefinitions>
                     <!--<Button x:Name="btnSubmit" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Content="Submit" Click="btnSubmit_Click" />-->
+                    <TextBlock Text="Function Output" Grid.Row="0" FontSize="20" />
                     <TextBox x:Name="txtOutputFunction" Grid.Row="1" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Visible" />
+                </Grid>
+            </TabItem>
+            <TabItem Header="Third">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition MaxHeight="30"></RowDefinition>
+                        <RowDefinition></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <!--<Button x:Name="btnSubmit" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Content="Submit" Click="btnSubmit_Click" />-->
+                    <TextBlock Text="Class Output" Grid.Row="0" FontSize="20" />
+                    <TextBox x:Name="txtOutputClass" Grid.Row="1" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Visible" />
                 </Grid>
             </TabItem>
         </TabControl>

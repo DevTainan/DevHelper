@@ -32,5 +32,16 @@ namespace DevCore
 
             return returnString;
         }
+
+        public string ToFunString()
+        {
+            string outputString = @"{0}=""""{1}""""";   // 要兩個雙引號, 配合@
+
+            string returnString = string.Format(outputString,
+                this.Name,
+                this.Value);
+
+            return returnString;
+        }
     }
 }
