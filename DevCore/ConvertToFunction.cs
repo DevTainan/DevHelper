@@ -11,12 +11,14 @@ namespace DevCore
         #region Property
 
         public Stack<string> functionStringList = new Stack<string>(); // 儲存輸出字串 
+        public Stack<string> classStringList = new Stack<string>(); // 儲存輸出字串 
 
         #endregion
 
         public XmlConvert(XmlNode xmlNode)
         {
             ConvertToFunction(xmlNode);
+            ConvertToClass(xmlNode);
         }
 
         #region Output Sample
@@ -204,6 +206,142 @@ namespace DevCore
                 </Message>
             </SU>";
             return function_text;
+        }
+
+        private void ConvertToClass(XmlNode xmlNode)
+        {
+            #region Output Sample
+
+            //         public class QueryBCFlowNumGZRule_Result : Execute_Result
+            //{
+            //    DataCollection<DataInfo> cv_List = new DataCollection<DataInfo >();
+            //    public DataCollection<DataInfo> List
+            //    {
+            //        get { return cv_List; }
+            //        set { cv_List = value; }
+            //    }
+
+            //    public class DataInfo : EventData
+            //    {
+            //        private string cv_CreatorId;
+            //        public string CreatorId
+            //        {
+            //            get { return cv_CreatorId; }
+            //            set { cv_CreatorId = value; }
+            //        }
+
+            //        private string cv_CreateDate;
+
+            //        public string CreateDate
+            //        {
+            //            get { return cv_CreateDate; }
+            //            set { cv_CreateDate = value; }
+            //        }
+
+            //        private string cv_Id;
+
+            //        public string Id
+            //        {
+            //            get { return cv_Id; }
+            //            set { cv_Id = value; }
+            //        }
+
+            //        private string cv_Name;
+
+            //        public string Name
+            //        {
+            //            get { return cv_Name; }
+            //            set { cv_Name = value; }
+            //        }
+            //    }
+            //}
+
+
+            #endregion
+
+            if (xmlNode.Name.Equals(@"Body"))   // 排除Root
+            {
+                classStringList.Push(ConverToRootClassText(xmlNode));
+
+                CheckChildNode(xmlNode);
+
+                classStringList.Push(@"
+}
+");
+            }
+            else
+            {
+                if (xmlNode.ValueType == ValueTypeEnum.LIST)
+                {
+                    classStringList.Push(ConverToListClassText(xmlNode));
+
+                    CheckChildNode(xmlNode);
+
+                    classStringList.Push(@"
+}
+");
+                }
+                else
+                {
+                    classStringList.Push(ConverToNodeClassText(xmlNode));
+
+                    CheckChildNode(xmlNode);
+                }
+            }
+
+        }
+
+        private void CheckChildNode(XmlNode xmlNode)
+        {
+            foreach (XmlNode childXmlNode in xmlNode.XmlNodeList)
+            {
+                if (childXmlNode.ValueType != ValueTypeEnum.LIST)
+                {
+                    ConvertToClass(childXmlNode);
+                }
+                else
+                {
+                    // 輸出為字串, 並遞迴
+                    ConvertToClass(childXmlNode);
+                }
+            }
+        }
+
+        private string ConverToRootClassText(XmlNode xmlNode)
+        {
+            string output = @"
+public class XXX_Result : Execute_Result
+{";
+            return output;
+        }
+        private string ConverToListClassText(XmlNode xmlNode)
+        {
+            string class_name = xmlNode.XmlNodeList.FirstOrDefault().Name;
+            string node_name = xmlNode.Name;
+            string output = @"
+    private DataCollection<" + class_name + @"> cv_" + node_name + @" = new DataCollection<DataInfo >();
+    public DataCollection<" + class_name + @"> " + node_name + @"
+    {
+        get { return cv_" + node_name + @"; }
+        set { cv_" + node_name + @" = value; }
+    }
+
+    public class " + class_name + @" : EventData
+{";
+            return output;
+        }
+        private string ConverToNodeClassText(XmlNode xmlNode)
+        {
+            string node_name = xmlNode.Name;
+            string type = xmlNode.ValueType.ToString().ToLower();
+            string output = @"
+    private " + type + @" cv_" + node_name + @";
+    public " + type + @" " + node_name + @"
+    {
+        get { return cv_" + node_name + @"; }
+        set { cv_" + node_name + @" = value; }
+    }";
+            return output;
         }
     }
 }

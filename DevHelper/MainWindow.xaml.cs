@@ -113,6 +113,12 @@ namespace DevHelper
             txtOutputFunction.Text = list_text;   // todo 20140714, 將Root的Function分開, 方便輸出不同格式
 
             // Third
+            string class_text = string.Empty;
+            foreach (string text in xmlConvert.classStringList.Reverse())
+            {
+                class_text += text;
+            }
+            txtOutputClass.Text = class_text;   // todo 20140808, 整個專案需要重構
         }
 
     }
