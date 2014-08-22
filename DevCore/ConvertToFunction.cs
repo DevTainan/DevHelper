@@ -123,7 +123,7 @@ namespace DevCore
                 stringBuilder.Append(front_text + childXmlNode.ToFunString() + end_text_newline);
             }
 
-            stringBuilder.Append(front_text + "<" + xmlNode.Name + ">" + end_text);
+            stringBuilder.Append(front_text + "</" + xmlNode.Name + ">" + end_text);
             stringBuilder.Append(@"
             }");
 
@@ -148,7 +148,7 @@ namespace DevCore
         // 依據ValueType給不同的Value, 主要是針對List, 並排除Root Node
         private string GetNodeValue(XmlNode xmlNode)
         {
-            string node_value = @" + " + xmlNode.Name.ToLowercaseNamingConvention(true) + @" + """;
+            string node_value = @" + " + xmlNode.Name.ToLowercaseNamingConvention(true) + @".ToString() + @""";
             //if (xmlNode.Name == @"Body") // Root Node
             //{
             //    node_value = string.Empty;
@@ -159,7 +159,7 @@ namespace DevCore
             //}
             if (xmlNode.ValueType != ValueTypeEnum.NONE && xmlNode.ValueType != ValueTypeEnum.LIST)
             {
-                node_value = @""" + info." + xmlNode.Name + @" + """;
+                node_value = @""" + info." + xmlNode.Name + @" + @""";
             }
             return node_value;
         }
@@ -214,7 +214,7 @@ namespace DevCore
 
             //         public class QueryBCFlowNumGZRule_Result : Execute_Result
             //{
-            //    DataCollection<DataInfo> cv_List = new DataCollection<DataInfo >();
+            //    DataCollection<DataInfo> cv_List = new DataCollection<DataInfo>();
             //    public DataCollection<DataInfo> List
             //    {
             //        get { return cv_List; }
@@ -319,7 +319,7 @@ public class XXX_Result : Execute_Result
             string class_name = xmlNode.XmlNodeList.FirstOrDefault().Name;
             string node_name = xmlNode.Name;
             string output = @"
-    private DataCollection<" + class_name + @"> cv_" + node_name + @" = new DataCollection<DataInfo >();
+    private DataCollection<" + class_name + @"> cv_" + node_name + @" = new DataCollection<" + class_name + @">();
     public DataCollection<" + class_name + @"> " + node_name + @"
     {
         get { return cv_" + node_name + @"; }

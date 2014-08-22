@@ -122,16 +122,20 @@ namespace DevCore
 
                             #region Has End "</xxx>" or Not End
                             // 先判斷TagName, 再判斷結尾符號
-                            int endTagNameIndex = FindLast(xml, newXmlNode.Name);
+                            //int endTagNameIndex = FindLast(xml, newXmlNode.Name);     // R20140821 Ken Modify
+                            // 先排除<ProductName KGS_TYPE="A"></ProductName>找到<ProductNameLocal KGS_TYPE="A"></ProductNameLocal>結尾的錯誤; 直接找有 "</" 和 ">", 若都有才算有結尾
+                            int endTagNameIndex = FindLast(xml, XmlParameter.EndTagStart.ToString() + newXmlNode.Name + XmlParameter.TagEnd.ToString());
                             if (endTagNameIndex != -1)
                             {
                                 // 判斷Tag前後是否有 "</" 和 ">", 若都有才算有結尾
-                                if(xml.Substring(endTagNameIndex - 2, 2).Equals(XmlParameter.EndTagStart.ToString()) &&
-                                   xml.Substring(endTagNameIndex + newXmlNode.Name.Length, 1).Equals(XmlParameter.TagEnd.ToString()))
+                                //if(xml.Substring(endTagNameIndex - 2, 2).Equals(XmlParameter.EndTagStart.ToString()) &&
+                                //   xml.Substring(endTagNameIndex + newXmlNode.Name.Length, 1).Equals(XmlParameter.TagEnd.ToString()))
                                 {
                                     #region Has End "</xxx>"
-                                    newXmlNode.endTag_StartIndex = endTagNameIndex - 2;
-                                    newXmlNode.endTag_EndIndex = endTagNameIndex + newXmlNode.Name.Length;
+                                    //newXmlNode.endTag_StartIndex = endTagNameIndex - 2;
+                                    //newXmlNode.endTag_EndIndex = endTagNameIndex + newXmlNode.Name.Length;
+                                    newXmlNode.endTag_StartIndex = endTagNameIndex;         // R20140821 Ken Modify
+                                    newXmlNode.endTag_EndIndex = endTagNameIndex + 2 + newXmlNode.Name.Length;
 
                                     newXmlNode.HasEnd = true;
 
@@ -142,12 +146,12 @@ namespace DevCore
                                     ParseXml(newXmlNode.Value, newXmlNode);
                                     #endregion
                                 }
-                                else
-                                {
-                                    #region Has No End "</xxx>"
-                                    newXmlNode.HasEnd = false;
-                                    #endregion
-                                }
+                                //else  // R20140821 Ken Modify
+                                //{
+                                //    #region Has No End "</xxx>"
+                                //    newXmlNode.HasEnd = false;
+                                //    #endregion
+                                //}
 
                                 // 判斷是否還有其他XmlNode並處理
                                 ProcessNextXmlNode(xml, xmlNode, newXmlNode);

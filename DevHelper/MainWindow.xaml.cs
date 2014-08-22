@@ -95,30 +95,37 @@ namespace DevHelper
 
         private void btnSubmit_Click(object sender, RoutedEventArgs e)
         {
-            // First
-            XmlParse xmlParse = new XmlParse(txtInput.Text);
-            txtOutput.Text = xmlParse.stringBuilder.ToString();
-
-
-            // Second
-            XmlNode rootXmlNode = xmlParse.rootXmlNode;     // 設定指向rootXmlNode的變數, 方便操作
-
-            XmlConvert xmlConvert = new XmlConvert(rootXmlNode);
-
-            string list_text = string.Empty;
-            foreach (string text in xmlConvert.functionStringList)
+            try
             {
-                list_text += text + Environment.NewLine;
-            }
-            txtOutputFunction.Text = list_text;   // todo 20140714, 將Root的Function分開, 方便輸出不同格式
+                // First
+                XmlParse xmlParse = new XmlParse(txtInput.Text);
+                txtOutput.Text = xmlParse.stringBuilder.ToString();
 
-            // Third
-            string class_text = string.Empty;
-            foreach (string text in xmlConvert.classStringList.Reverse())
-            {
-                class_text += text;
+
+                // Second
+                XmlNode rootXmlNode = xmlParse.rootXmlNode;     // 設定指向rootXmlNode的變數, 方便操作
+
+                XmlConvert xmlConvert = new XmlConvert(rootXmlNode);
+
+                string list_text = string.Empty;
+                foreach (string text in xmlConvert.functionStringList)
+                {
+                    list_text += text + Environment.NewLine;
+                }
+                txtOutputFunction.Text = list_text;   // todo 20140714, 將Root的Function分開, 方便輸出不同格式
+
+                // Third
+                string class_text = string.Empty;
+                foreach (string text in xmlConvert.classStringList.Reverse())
+                {
+                    class_text += text;
+                }
+                txtOutputClass.Text = class_text;   // todo 20140808, 整個專案需要重構
             }
-            txtOutputClass.Text = class_text;   // todo 20140808, 整個專案需要重構
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
     }
