@@ -34,6 +34,8 @@ namespace DevHelper
             InitializeComponent();
 
             // Init
+            txtMsgId.Text = "SM_CreateAutoGenBCRequest";
+
             string testString = @"
 <Body>
     <Id KGS_TYPE=""U4"" />
@@ -97,15 +99,15 @@ namespace DevHelper
         {
             try
             {
-                // First
+                // First, Parse
                 XmlParse xmlParse = new XmlParse(txtInput.Text);
                 txtOutput.Text = xmlParse.stringBuilder.ToString();
 
 
-                // Second
+                // Second, Function
                 XmlNode rootXmlNode = xmlParse.rootXmlNode;     // 設定指向rootXmlNode的變數, 方便操作
 
-                XmlConvert xmlConvert = new XmlConvert(rootXmlNode);
+                XmlConvert xmlConvert = new XmlConvert(rootXmlNode, txtMsgId.Text);
 
                 string list_text = string.Empty;
                 foreach (string text in xmlConvert.functionStringList)
@@ -114,7 +116,7 @@ namespace DevHelper
                 }
                 txtOutputFunction.Text = list_text;   // todo 20140714, 將Root的Function分開, 方便輸出不同格式
 
-                // Third
+                // Third, Class
                 string class_text = string.Empty;
                 foreach (string text in xmlConvert.classStringList.Reverse())
                 {

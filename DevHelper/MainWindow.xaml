@@ -8,6 +8,7 @@
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition MaxHeight="30"></RowDefinition>
+                        <RowDefinition MaxHeight="30"></RowDefinition>
                         <RowDefinition></RowDefinition>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
@@ -15,8 +16,9 @@
                         <ColumnDefinition></ColumnDefinition>
                     </Grid.ColumnDefinitions>
                     <Button x:Name="btnSubmit" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Content="Submit" Click="btnSubmit_Click" />
-                    <TextBox x:Name="txtInput" Grid.Row="1" Grid.Column="0" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Visible" />
-                    <TextBox x:Name="txtOutput" Grid.Row="1" Grid.Column="1" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Visible" />
+                    <TextBox x:Name="txtMsgId" Grid.Row="1" Grid.Column="0" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Hidden" Background="Azure" />
+                    <TextBox x:Name="txtInput" Grid.Row="2" Grid.Column="0" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Visible" />
+                    <TextBox x:Name="txtOutput" Grid.Row="1" Grid.Column="1" Grid.RowSpan="2" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Visible" />
                 </Grid>
             </TabItem>
             <TabItem Header="Second">

@@ -12,11 +12,21 @@ namespace DevCore
 
         public Stack<string> functionStringList = new Stack<string>(); // 儲存輸出字串 
         public Stack<string> classStringList = new Stack<string>(); // 儲存輸出字串 
+        private string cv_MessageId = string.Empty;
 
         #endregion
 
         public XmlConvert(XmlNode xmlNode)
         {
+            ConvertToFunction(xmlNode);
+            ConvertToClass(xmlNode);
+            cv_MessageId = "SM_CreateAutoGenBCRequest";
+        }
+
+        public XmlConvert(XmlNode xmlNode, string m_MessageId)
+        {
+            cv_MessageId = m_MessageId;
+
             ConvertToFunction(xmlNode);
             ConvertToClass(xmlNode);
         }
@@ -198,7 +208,7 @@ namespace DevCore
                         <TargetModule KGS_TYPE=""A"">DM</TargetModule>
                         <UnitNo KGS_TYPE=""U4""></UnitNo>
                         <Type KGS_TYPE=""A"">Request</Type>
-                        <Service KGS_TYPE =""A"">SM_CreateAutoGenBCRequest</Service>
+                        <Service KGS_TYPE =""A"">" + cv_MessageId + @"</Service>
                         <ConnID KGS_TYPE=""U8"">0</ConnID>
                         <Reserve KGS_TYPE =""L""></Reserve>
                         " + body_text + @"
@@ -273,6 +283,12 @@ namespace DevCore
             {
                 if (xmlNode.ValueType == ValueTypeEnum.LIST)
                 {
+                    //if (xmlNode.Name.Contains("Info"))     // R20140908 Ken 排除List底下的Info錯誤, List底下的Info也是List但是要跳過
+                    //{
+                    //    CheckChildNode(xmlNode);
+                    //}
+                    //else
+                    {
                     classStringList.Push(ConverToListClassText(xmlNode));
 
                     CheckChildNode(xmlNode);
@@ -280,6 +296,7 @@ namespace DevCore
                     classStringList.Push(@"
 }
 ");
+                    }
                 }
                 else
                 {
@@ -309,8 +326,11 @@ namespace DevCore
 
         private string ConverToRootClassText(XmlNode xmlNode)
         {
+            int first = cv_MessageId.IndexOf("_") + 1;
+            int last = cv_MessageId.IndexOf("Request") < 0 ? cv_MessageId.IndexOf("Reply") : cv_MessageId.IndexOf("Request");
+            string result = cv_MessageId.Substring(first, last - first) + "_Result";
             string output = @"
-public class XXX_Result : Execute_Result
+public class " + result + @" : Execute_Result
 {";
             return output;
         }
@@ -318,16 +338,26 @@ public class XXX_Result : Execute_Result
         {
             string class_name = xmlNode.XmlNodeList.FirstOrDefault().Name;
             string node_name = xmlNode.Name;
-            string output = @"
+            string output = string.Empty;
+            //if (node_name.Contains("Info"))     // R20140908 Ken 排除List底下的Info錯誤, List底下的Info也是List但是要跳過 (重購後處理)
+            //{
+                
+            //}
+            //else
+            {
+                output += @"
     private DataCollection<" + class_name + @"> cv_" + node_name + @" = new DataCollection<" + class_name + @">();
     public DataCollection<" + class_name + @"> " + node_name + @"
     {
         get { return cv_" + node_name + @"; }
         set { cv_" + node_name + @" = value; }
     }
+";
 
+                output += @"
     public class " + class_name + @" : EventData
 {";
+            }
             return output;
         }
         private string ConverToNodeClassText(XmlNode xmlNode)
