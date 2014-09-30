@@ -55,19 +55,27 @@ namespace DevCore
             try
             {
                 XmlNode newXmlNode = new XmlNode();
-                newXmlNode.startTag_StartIndex = FindFirst(xml, XmlParameter.StartTagStart);  // 開始符號
+
+                //newXmlNode.startTag_StartIndex = FindFirst(xml, XmlParameter.StartTagStart);  // 開始符號
+                newXmlNode.startTag_StartIndex = xml.FindFirst(XmlParameter.StartTagStart);  // 開始符號
+
                 if (newXmlNode.startTag_StartIndex != -1)    // 有找到結尾服號, 才需要判斷是否為結尾Tag
                 {
-                    newXmlNode.startTag_EndIndex = FindFirst(xml, XmlParameter.TagEnd);    // 結束符號
+                    #region 有找到結尾服號, 才需要判斷是否為結尾Tag
+                    //newXmlNode.startTag_EndIndex = FindFirst(xml, XmlParameter.TagEnd);    // 結束符號
+                    newXmlNode.startTag_EndIndex = xml.FindFirst(XmlParameter.TagEnd);    // 結束符號
+
                     if (newXmlNode.startTag_EndIndex != -1)
                     {
                         // 開始符號的位置+自己的長度=Tag開始位置
-                        newXmlNode.Name = xml.Substring(newXmlNode.startTag_StartIndex + XmlParameter.StartTagStart.Length, newXmlNode.startTag_EndIndex - (newXmlNode.startTag_StartIndex + XmlParameter.StartTagStart.Length));
+                        //newXmlNode.Name = xml.Substring(newXmlNode.startTag_StartIndex + XmlParameter.StartTagStart.Length, newXmlNode.startTag_EndIndex - (newXmlNode.startTag_StartIndex + XmlParameter.StartTagStart.Length));
+                        int value_StartIndex = newXmlNode.startTag_StartIndex + XmlParameter.StartTagStart.Length;
+                        newXmlNode.Name = xml.Substring(value_StartIndex, newXmlNode.startTag_EndIndex - value_StartIndex);
 
                         if (xmlNode != null)
                         {
-                            //XmlNodeList.Enqueue(TagName);    // todo
-                            // 加入父節點的List
+                            //XmlNodeList.Enqueue(TagName);    // todo ??
+                            // 若有父節點, 就加入父節點的XmlNodeList
                             xmlNode.XmlNodeList.Enqueue(newXmlNode);
                         }
 
@@ -75,8 +83,10 @@ namespace DevCore
                         string self_end = xml.Substring(newXmlNode.startTag_EndIndex - 1, 2);
                         if (self_end.Equals(XmlParameter.TagSelfEnd))
                         {
+                            #region 自我結尾
                             // 自我結尾, TagName要先處理自我結尾 "/>"
                             newXmlNode.Name = newXmlNode.Name.Substring(0, newXmlNode.Name.Length - 1);
+                            // R20140911 todo: 重構 非自我結尾有相同程式碼
                             // 解析TagName是否包含空白, 有空白表是包含屬性, 而且TagName為空白分割的第一組字串
                             if (newXmlNode.Name.Contains(XmlParameter.Whitespace))
                             {
@@ -84,6 +94,7 @@ namespace DevCore
                                 string[] attributes = newXmlNode.Name.Split(new string[] { XmlParameter.Whitespace }, StringSplitOptions.RemoveEmptyEntries);
                                 newXmlNode.Name = attributes[0];
 
+                                // 將TagName以外的屬性加入XmlAttributeList
                                 foreach (string attr in attributes.Where(str => str != newXmlNode.Name).ToArray())
                                 {
                                     newXmlNode.XmlAttributeList.Enqueue(new XmlAttribute(attr));
@@ -94,17 +105,22 @@ namespace DevCore
                             newXmlNode.HasEnd = true;
                             newXmlNode.HasSelfEnd = true;
 
+                            // 若結束符號不在最後, 表示還要分析其它節點, 結束符號後的節點
                             if (newXmlNode.startTag_EndIndex != xml.Length - 1)
                             {
-                                string next_xml_node = xml.Substring(newXmlNode.startTag_EndIndex + XmlParameter.TagEnd.Length, (xml.Length) - (newXmlNode.startTag_EndIndex + XmlParameter.TagEnd.Length));
+                                //string next_xml_node = xml.Substring(newXmlNode.startTag_EndIndex + XmlParameter.TagEnd.Length, (xml.Length) - (newXmlNode.startTag_EndIndex + XmlParameter.TagEnd.Length));
+                                int value_EndIndex = newXmlNode.startTag_EndIndex + XmlParameter.TagEnd.Length;     // todo: 應該改成 XmlParameter.TagSelfEnd.Length
+                                string next_xml_node = xml.Substring(value_EndIndex, (xml.Length) - value_EndIndex);
                                 ParseXml(next_xml_node, xmlNode);
                             }
 
                             return newXmlNode;
+                            #endregion 
                             #endregion
                         }
                         else
                         {
+                            #region 非自我結尾
                             // 非自我結尾, TagName不用處理自我結尾 "/>"
                             //newXmlNode.Name = newXmlNode.Name.Substring(0, newXmlNode.Name.Length - 1);
                             // 解析TagName是否包含空白, 有空白表是包含屬性, 而且TagName為空白分割的第一組字串
@@ -208,6 +224,7 @@ namespace DevCore
                             //    return newXmlNode;
                             //    #endregion
                             //} 
+                            #endregion 
                             #endregion
                             #endregion
                         }
@@ -215,7 +232,8 @@ namespace DevCore
                     else
                     {
                         return null;
-                    }
+                    } 
+                    #endregion
                 }
                 else
                 {
